@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lempicka</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, #d4af37, #f4e4bc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #888;
+      margin-bottom: 2rem;
+      font-style: italic;
+    }
+
+    .upload-area {
+      border: 2px dashed #d4af37;
+      border-radius: 16px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(212, 175, 55, 0.05);
+    }
+
+    .upload-area:hover {
+      background: rgba(212, 175, 55, 0.1);
+      border-color: #f4e4bc;
+    }
+
+    .upload-area.dragover {
+      background: rgba(212, 175, 55, 0.2);
+      border-color: #f4e4bc;
+    }
+
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .upload-text {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-hint {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #d4af37, #b8960c);
+      color: #1a1a2e;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .preview-section {
+      margin-top: 2rem;
+    }
+
+    .preview-label {
+      font-size: 0.9rem;
+      color: #888;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .preview-container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .preview-box {
+      flex: 1;
+      min-width: 250px;
+      max-width: 100%;
+    }
+
+    .preview-box img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .status {
+      text-align: center;
+      margin-top: 2rem;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    .status.loading {
+      background: rgba(212, 175, 55, 0.1);
+      color: #d4af37;
+    }
+
+    .status.error {
+      background: rgba(220, 53, 69, 0.1);
+      color: #dc3545;
+    }
+
+    .status.success {
+      background: rgba(40, 167, 69, 0.1);
+      color: #28a745;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #d4af37;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .download-link {
+      display: inline-block;
+      margin-top: 1rem;
+      color: #d4af37;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .download-link:hover {
+      text-decoration: underline;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .camera-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .camera-modal video {
+      max-width: 100%;
+      max-height: 60vh;
+      border-radius: 12px;
+    }
+
+    .camera-modal canvas {
+      display: none;
+    }
+
+    .camera-controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-capture {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: #d4af37;
+      border: 4px solid #fff;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .btn-capture:hover {
+      transform: scale(1.1);
+    }
+
+    .btn-close-camera {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: #fff;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .btn-flip-camera {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .btn-flip-camera svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+
+    .btn-flip-camera:hover {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-flip-camera:active {
+      background: rgba(0, 0, 0, 0.6);
+      transform: scale(0.95);
+    }
+
+    .btn-flip-camera.flipping svg {
+      animation: flip-rotate 0.3s ease-out;
+    }
+
+    @keyframes flip-rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(180deg); }
+    }
+
+    .countdown {
+      position: absolute;
+      font-size: 8rem;
+      font-weight: bold;
+      color: #d4af37;
+      text-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+      animation: pulse 1s ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1.5); opacity: 0; }
+      50% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0.8); opacity: 0; }
+    }
+
+    .config-status {
+      text-align: center;
+      font-size: 0.8rem;
+      margin-top: 2rem;
+      padding: 0.5rem;
+    }
+
+    .config-status.ok {
+      color: #28a745;
+    }
+
+    .config-status.error {
+      color: #dc3545;
+    }
+
+    .config-status.checking {
+      color: #888;
+    }
+
+    .feed-section {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    .feed-title {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: #d4af37;
+    }
+
+    .feed-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .feed-item {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s;
+    }
+
+    .feed-item:hover {
+      transform: scale(1.05);
+    }
+
+    .feed-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .lightbox {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      cursor: zoom-out;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .lightbox.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+
+    .lightbox.active img {
+      transform: scale(1);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 1.8rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .clickable-image {
+      cursor: zoom-in;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      .upload-area {
+        padding: 30px 15px;
+      }
+
+      .buttons {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Lempicka</h1>
+    <p class="subtitle">Transform your photos into Art Deco masterpieces</p>
+
+    <div class="upload-area" id="uploadArea">
+      <div class="upload-icon">🎨</div>
+      <p class="upload-text">Drop an image here or click to upload</p>
+      <p class="upload-hint">Supports JPG, PNG, WebP</p>
+    </div>
+
+    <div class="buttons">
+      <button class="btn-primary" id="uploadBtn">Choose Image</button>
+      <button class="btn-secondary" id="cameraBtn">Use Camera</button>
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*">
+
+    <div id="cameraModal" class="camera-modal hidden">
+      <button class="btn-close-camera" id="closeCameraBtn">&times;</button>
+      <video id="cameraVideo" autoplay playsinline></video>
+      <canvas id="cameraCanvas"></canvas>
+      <div class="camera-controls">
+        <button class="btn-capture" id="captureBtn"></button>
+      </div>
+      <button class="btn-flip-camera" id="flipCameraBtn" aria-label="Switch camera" title="Switch camera">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 5h-3.17L15 3H9L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-8 13c-2.76 0-5-2.24-5-5H5l3-4 3 4H9c0 1.65 1.35 3 3 3s3-1.35 3-3h-2l3-4 3 4h-2c0 2.76-2.24 5-5 5z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="status" class="status hidden"></div>
+
+    <div id="previewSection" class="preview-section hidden">
+      <div class="preview-container">
+        <div class="preview-box">
+          <p class="preview-label">Original</p>
+          <img id="originalPreview" src="" alt="Original">
+        </div>
+        <div class="preview-box" id="resultBox">
+          <p class="preview-label">Lempicka Style</p>
+          <img id="resultPreview" src="" alt="Result">
+        </div>
+      </div>
+      <div style="text-align: center;">
+        <a id="downloadLink" class="download-link hidden" href="" download="lempicka.jpg">Download Result</a>
+      </div>
+    </div>
+
+    <div id="configStatus" class="config-status"></div>
+
+    <div id="feedSection" class="feed-section hidden">
+      <h2 class="feed-title">Recent Transformations</h2>
+      <div id="feedGrid" class="feed-grid"></div>
+    </div>
+  </div>
+
+  <div id="lightbox" class="lightbox">
+    <button class="lightbox-close" id="lightboxClose">&times;</button>
+    <img id="lightboxImg" src="" alt="Full size image">
+  </div>
+
+  <script>
+    const uploadArea = document.getElementById('uploadArea');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const fileInput = document.getElementById('fileInput');
+    const cameraModal = document.getElementById('cameraModal');
+    const cameraVideo = document.getElementById('cameraVideo');
+    const cameraCanvas = document.getElementById('cameraCanvas');
+    const captureBtn = document.getElementById('captureBtn');
+    const closeCameraBtn = document.getElementById('closeCameraBtn');
+    const flipCameraBtn = document.getElementById('flipCameraBtn');
+    const status = document.getElementById('status');
+    const previewSection = document.getElementById('previewSection');
+    const originalPreview = document.getElementById('originalPreview');
+    const resultPreview = document.getElementById('resultPreview');
+    const resultBox = document.getElementById('resultBox');
+    const downloadLink = document.getElementById('downloadLink');
+
+    let cameraStream = null;
+    let currentFacingMode = 'environment'; // 'environment' = back, 'user' = front
+
+    // Click handlers
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadBtn.addEventListener('click', () => fileInput.click());
+    cameraBtn.addEventListener('click', openCamera);
+    closeCameraBtn.addEventListener('click', closeCamera);
+    captureBtn.addEventListener('click', capturePhoto);
+    flipCameraBtn.addEventListener('click', flipCamera);
+
+    // File input handler
+    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+    async function openCamera() {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        cameraVideo.srcObject = cameraStream;
+        cameraModal.classList.remove('hidden');
+      } catch (err) {
+        setStatus('error', `Camera error: ${err.message}`);
+      }
+    }
+
+    function closeCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      cameraVideo.srcObject = null;
+      cameraModal.classList.add('hidden');
+    }
+
+    async function flipCamera() {
+      // Toggle facing mode
+      currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+
+      // Update aria-label for accessibility
+      flipCameraBtn.setAttribute('aria-label',
+        currentFacingMode === 'user' ? 'Switch to back camera' : 'Switch to front camera'
+      );
+
+      // Add animation
+      flipCameraBtn.classList.add('flipping');
+      setTimeout(() => flipCameraBtn.classList.remove('flipping'), 300);
+
+      // Stop current stream
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+
+      // Start new stream with flipped camera
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        cameraVideo.srcObject = cameraStream;
+      } catch (err) {
+        // If flip fails (e.g., device only has one camera), revert
+        currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+        setStatus('error', 'Could not switch camera');
+      }
+    }
+
+    let countdownActive = false;
+
+    async function capturePhoto() {
+      if (countdownActive) return;
+      countdownActive = true;
+      captureBtn.disabled = true;
+
+      // 5 second countdown
+      for (let i = 5; i > 0; i--) {
+        const countdownEl = document.createElement('div');
+        countdownEl.className = 'countdown';
+        countdownEl.textContent = i;
+        cameraModal.appendChild(countdownEl);
+        await new Promise(r => setTimeout(r, 1000));
+        countdownEl.remove();
+      }
+
+      // Take photo
+      cameraCanvas.width = cameraVideo.videoWidth;
+      cameraCanvas.height = cameraVideo.videoHeight;
+      const ctx = cameraCanvas.getContext('2d');
+      ctx.drawImage(cameraVideo, 0, 0);
+      const dataUri = cameraCanvas.toDataURL('image/jpeg', 0.9);
+
+      countdownActive = false;
+      captureBtn.disabled = false;
+      closeCamera();
+
+      originalPreview.src = dataUri;
+      previewSection.classList.remove('hidden');
+      resultBox.classList.add('hidden');
+      downloadLink.classList.add('hidden');
+      transformImage(dataUri);
+    }
+
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        handleFile(file);
+      }
+    });
+
+    async function handleFile(file) {
+      if (!file) return;
+
+      // Show original preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        originalPreview.src = e.target.result;
+        previewSection.classList.remove('hidden');
+        resultBox.classList.add('hidden');
+        downloadLink.classList.add('hidden');
+        transformImage(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function transformImage(dataUri) {
+      setStatus('loading', '<span class="spinner"></span>Transforming your image...');
+      uploadBtn.disabled = true;
+      cameraBtn.disabled = true;
+
+      try {
+        const response = await fetch('/transform', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: dataUri })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || result.error) {
+          throw new Error(result.details || result.error || 'Transform failed');
+        }
+
+        resultPreview.src = result.output;
+        resultBox.classList.remove('hidden');
+        downloadLink.href = result.output;
+        downloadLink.classList.remove('hidden');
+        setStatus('success', 'Transformation complete!');
+        loadFeed(); // Refresh feed with new image
+      } catch (err) {
+        setStatus('error', `Error: ${err.message}`);
+      } finally {
+        uploadBtn.disabled = false;
+        cameraBtn.disabled = false;
+      }
+    }
+
+    function setStatus(type, message) {
+      status.className = `status ${type}`;
+      status.innerHTML = message;
+      status.classList.remove('hidden');
+    }
+
+    // Check configuration on page load
+    const configStatus = document.getElementById('configStatus');
+
+    async function checkConfig() {
+      configStatus.className = 'config-status checking';
+      configStatus.textContent = 'Checking configuration...';
+
+      try {
+        const response = await fetch('/health');
+        const result = await response.json();
+
+        if (result.ok) {
+          configStatus.className = 'config-status ok';
+          configStatus.textContent = 'Successfully configured';
+        } else {
+          const issues = [];
+          if (!result.checks.replicate) issues.push('Replicate API');
+          configStatus.className = 'config-status error';
+          configStatus.textContent = `Configuration issue: ${issues.join(', ')} not connected`;
+        }
+      } catch (err) {
+        configStatus.className = 'config-status error';
+        configStatus.textContent = 'Configuration check failed';
+      }
+    }
+
+    checkConfig();
+
+    // Load feed on page load
+    const feedSection = document.getElementById('feedSection');
+    const feedGrid = document.getElementById('feedGrid');
+
+    async function loadFeed() {
+      try {
+        const response = await fetch('/feed');
+        const result = await response.json();
+
+        if (result.images && result.images.length > 0) {
+          feedGrid.innerHTML = result.images.map(item => `
+            <div class="feed-item clickable-image" data-src="${item.output}">
+              <img src="${item.output}" alt="Transformed image" loading="lazy">
+            </div>
+          `).join('');
+          feedSection.classList.remove('hidden');
+          // Add click handlers to feed items
+          feedGrid.querySelectorAll('.feed-item').forEach(item => {
+            item.addEventListener('click', () => openLightbox(item.dataset.src));
+          });
+        }
+      } catch {
+        // Ignore feed errors
+      }
+    }
+
+    loadFeed();
+
+    // Lightbox functionality
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxClose = document.getElementById('lightboxClose');
+
+    function openLightbox(src) {
+      lightboxImg.src = src;
+      lightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    lightboxClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeLightbox();
+    });
+
+    lightbox.addEventListener('click', closeLightbox);
+    lightboxImg.addEventListener('click', (e) => e.stopPropagation());
+
+    // Escape key closes lightbox
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+        closeLightbox();
+      }
+    });
+
+    // Make result image clickable
+    resultPreview.classList.add('clickable-image');
+    resultPreview.addEventListener('click', () => {
+      if (resultPreview.src) {
+        openLightbox(resultPreview.src);
+      }
+    });
+  </script>
+</body>
+</html>

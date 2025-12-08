@@ -54,6 +54,11 @@ export default {
       return handleFeed(env);
     }
 
+    // Feed cleanup endpoint (remove broken images)
+    if (request.method === "POST" && url.pathname === "/feed/cleanup") {
+      return handleFeedCleanup(request, env);
+    }
+
     return new Response(JSON.stringify({ error: "Not found" }), {
       status: 404,
       headers: { "Content-Type": "application/json" },
@@ -215,6 +220,39 @@ async function handleFeed(env) {
     });
   } catch {
     return new Response(JSON.stringify({ images: [] }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+
+async function handleFeedCleanup(request, env) {
+  try {
+    const body = await request.json();
+    const urlToRemove = body.url;
+
+    if (!urlToRemove || !env.GALLERY) {
+      return new Response(JSON.stringify({ ok: false }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const feed = await env.GALLERY.get("feed", { type: "json" }) || [];
+    const filteredFeed = feed.filter(item => item.output !== urlToRemove);
+
+    if (filteredFeed.length !== feed.length) {
+      await env.GALLERY.put("feed", JSON.stringify(filteredFeed));
+    }
+
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  } catch {
+    return new Response(JSON.stringify({ ok: false }), {
+      status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }

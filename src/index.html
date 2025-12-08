@@ -761,9 +761,24 @@
             </div>
           `).join('');
           feedSection.classList.remove('hidden');
-          // Add click handlers to feed items
+          // Add click handlers and error handlers to feed items
           feedGrid.querySelectorAll('.feed-item').forEach(item => {
             item.addEventListener('click', () => openLightbox(item.dataset.src));
+            const img = item.querySelector('img');
+            img.addEventListener('error', () => {
+              // Remove broken image from DOM
+              item.remove();
+              // Notify server to clean up KV
+              fetch('/feed/cleanup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: item.dataset.src })
+              }).catch(() => {});
+              // Hide feed section if empty
+              if (feedGrid.children.length === 0) {
+                feedSection.classList.add('hidden');
+              }
+            });
           });
         }
       } catch {

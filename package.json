@@ -7,12 +7,26 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "test": "node test/test.js"
+    "test": "node test/test.js",
+    "test:prompts": "node --env-file=.env test/test-replicate-direct.js",
+    "test:iteration2": "node --env-file=.env test/test-iteration2.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "cloudflare-worker",
+    "replicate",
+    "image-to-image",
+    "art-deco",
+    "lempicka"
+  ],
+  "author": "Adewale Oshineye",
   "license": "ISC",
+  "engines": {
+    "node": ">=20.6.0"
+  },
   "dependencies": {
     "wrangler": "^4.51.0"
+  },
+  "overrides": {
+    "ws": "^8.20.1"
   }
 }

@@ -1,5 +1,15 @@
+# Local secrets
+.env
+.env.local
+.env.*.local
 .dev.vars
+
+# Dependencies and build/runtime artifacts
 node_modules/
 .wrangler/
+
+# OS/editor noise
 .DS_Store
+
+# Generated prompt-comparison outputs
 test/result-*.jpg

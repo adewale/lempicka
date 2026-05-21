@@ -5,7 +5,12 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const NANO_BANANA_VERSION = "d05a591283da31be3eea28d5634ef9e26989b351718b6489bd308426ebd0a3e8";
-const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN || "your_replicate_api_token_here";
+const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+
+if (!REPLICATE_API_TOKEN) {
+  console.error("REPLICATE_API_TOKEN is required. Load .env with `node --env-file=.env <script>` or export it in your shell.");
+  process.exit(1);
+}
 
 // Refined prompts based on first iteration results
 const prompts = [

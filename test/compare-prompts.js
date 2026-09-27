@@ -1,11 +1,11 @@
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { NANO_BANANA_VERSION } from "../src/prompt.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
-const NANO_BANANA_VERSION = "d05a591283da31be3eea28d5634ef9e26989b351718b6489bd308426ebd0a3e8";
 
 const ORIGINAL_PROMPT = `Transform this image into the artistic style of Tamara de Lempicka.
 Apply her signature Art Deco aesthetic: bold geometric forms, smooth sculptural surfaces,
@@ -111,4 +111,7 @@ async function main() {
   console.log(improvedResult);
 }
 
-main().catch(console.error);
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

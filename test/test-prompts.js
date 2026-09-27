@@ -90,6 +90,15 @@ async function runTests() {
       console.log(`  Error: ${r.error}`);
     }
   }
+
+  const failures = results.filter((r) => r.error).length;
+  if (failures > 0) {
+    console.error(`\n${failures} of ${results.length} prompts failed.`);
+    process.exitCode = 1;
+  }
 }
 
-runTests();
+runTests().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

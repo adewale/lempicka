@@ -34,7 +34,11 @@ before(async () => {
   mf = new Miniflare({
     scriptPath: "src/index.js",
     modules: true,
-    modulesRules: [{ type: "Text", include: ["**/*.html"] }],
+    // Same module types wrangler uses for this project (wrangler.jsonc).
+    modulesRules: [
+      { type: "ESModule", include: ["**/*.js"] },
+      { type: "Text", include: ["**/*.html"] },
+    ],
     compatibilityDate: "2024-12-01",
     kvNamespaces: ["GALLERY"],
     bindings: { REPLICATE_API_TOKEN: "test-token" },

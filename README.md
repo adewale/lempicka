@@ -148,6 +148,7 @@ Successful response:
 | --- | --- |
 | `npm run dev` | Starts Wrangler dev server |
 | `npm run deploy` | Deploys the Worker |
+| `npm run test:worker` | Runs the Worker in workerd with local KV and a stubbed Replicate; no token or network needed |
 | `npm test` | Posts `test/test-small.jpg` to a running Worker |
 | `npm run test:prompts` | Runs direct Replicate prompt comparisons |
 | `npm run test:iteration2` | Runs the second prompt-iteration script |

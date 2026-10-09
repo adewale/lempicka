@@ -1,10 +1,10 @@
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { NANO_BANANA_VERSION } from "../src/prompt.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const NANO_BANANA_VERSION = "d05a591283da31be3eea28d5634ef9e26989b351718b6489bd308426ebd0a3e8";
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
 if (!REPLICATE_API_TOKEN) {
@@ -130,6 +130,15 @@ async function runTests() {
       console.log(`  Error: ${r.error}`);
     }
   }
+
+  const failures = results.filter((r) => r.error).length;
+  if (failures > 0) {
+    console.error(`\n${failures} of ${results.length} prompts failed.`);
+    process.exitCode = 1;
+  }
 }
 
-runTests();
+runTests().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

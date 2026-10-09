@@ -34,8 +34,8 @@ async function testLempicka() {
 
     const result = await response.json();
 
-    if (result.error) {
-      console.error("Error:", result.error);
+    if (!response.ok || result.error) {
+      console.error("Error:", result.error ?? `HTTP ${response.status}`);
       if (result.details) console.error("Details:", result.details);
       process.exit(1);
     }
@@ -48,4 +48,7 @@ async function testLempicka() {
   }
 }
 
-testLempicka();
+testLempicka().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

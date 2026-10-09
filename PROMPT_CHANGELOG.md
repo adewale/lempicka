@@ -1,6 +1,7 @@
 # Prompt Changelog
 
-This file tracks the evolution of the production prompt used in `src/index.js`.
+This file tracks the evolution of the production prompt in `src/prompt.js`
+(used by `src/index.js`).
 
 ---
 

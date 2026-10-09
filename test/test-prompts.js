@@ -45,10 +45,11 @@ async function testPrompt(prompt, dataUri, workerUrl) {
 
     const result = await response.json();
 
-    if (result.error) {
-      console.error("Error:", result.error);
+    if (!response.ok || result.error) {
+      const error = result.error ?? `HTTP ${response.status}`;
+      console.error("Error:", error);
       if (result.details) console.error("Details:", result.details);
-      return { name: prompt.name, error: result.error, details: result.details };
+      return { name: prompt.name, error, details: result.details };
     }
 
     console.log("Success! Output URL:", result.output);

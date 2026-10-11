@@ -1,25 +1,16 @@
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { LEMPICKA_PROMPT, NANO_BANANA_VERSION } from "../src/prompt.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
-const NANO_BANANA_VERSION = "d05a591283da31be3eea28d5634ef9e26989b351718b6489bd308426ebd0a3e8";
 
-// Current prompt (adds lipstick to men)
-const CURRENT_PROMPT = `Paint this person as a Tamara de Lempicka portrait, 1929.
-
-PRESERVE the subject's face exactly - their bone structure, features, gender, ethnicity, and likeness must remain recognizable. This is a commissioned portrait of THIS specific person.
-
-APPLY Lempicka's style to the surface and lighting:
-- Smooth, polished skin like glazed porcelain with imperceptible brushstrokes
-- Dramatic chiaroscuro: single light source from upper left, sculptural shadows
-- Her color palette: warm flesh tones, cool gray shadows, accent red on lips only
-- Soft Cubist simplification of forms without distorting identity
-- Art Deco geometric background in muted grays and greens
-
-The subject should look like themselves painted by Lempicka - elevated, glamorous, idealized, but unmistakably the same person. Oil painting technique.`;
+// Baseline: the prompt the Worker ships (src/prompt.js), not a copy of it.
+// When this experiment first ran, production was v2 in PROMPT_CHANGELOG.md,
+// which added red lipstick to men.
+const PRODUCTION_PROMPT = LEMPICKA_PROMPT;
 
 // Gender-aware prompt v1
 const GENDER_AWARE_V1 = `Paint this person as a Tamara de Lempicka portrait commission, 1929.
@@ -131,8 +122,8 @@ async function main() {
 
   const results = {};
 
-  results.current = await callReplicate(CURRENT_PROMPT, dataUri, "CURRENT (has lipstick issue)");
-  console.log("Result:", results.current);
+  results.production = await callReplicate(PRODUCTION_PROMPT, dataUri, "PRODUCTION (src/prompt.js)");
+  console.log("Result:", results.production);
 
   results.v1 = await callReplicate(GENDER_AWARE_V1, dataUri, "GENDER-AWARE V1");
   console.log("Result:", results.v1);
@@ -144,10 +135,13 @@ async function main() {
   console.log("Result:", results.v3);
 
   console.log("\n=== RESULTS SUMMARY ===");
-  console.log("\nCurrent (lipstick issue):", results.current);
+  console.log("\nProduction:", results.production);
   console.log("\nGender-aware V1:", results.v1);
   console.log("\nGender-aware V2:", results.v2);
   console.log("\nGender-aware V3:", results.v3);
 }
 
-main().catch(console.error);
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

@@ -1,32 +1,20 @@
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { LEMPICKA_PROMPT, NANO_BANANA_VERSION } from "../src/prompt.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
-const NANO_BANANA_VERSION = "d05a591283da31be3eea28d5634ef9e26989b351718b6489bd308426ebd0a3e8";
 
 // Historical context: Lempicka deliberately removed glasses from subjects
 // (e.g., André Gide was painted "unfettered by glasses" despite wearing them IRL)
 // We're overriding this to preserve modern identity markers.
 
-// Current production prompt (likely removes glasses per Lempicka's actual practice)
-const CURRENT_PROMPT = `Tamara de Lempicka oil portrait commission, 1929.
-
-CRITICAL - PRESERVE IDENTITY: Keep the subject's exact face, bone structure, gender, ethnicity, and features. They must be recognizable.
-
-LEMPICKA STYLE ELEMENTS:
-- Polished, luminous skin with smooth gradients
-- Strong directional lighting from upper left creating sculptural shadows
-- Art Deco architectural background in cool grays
-- Soft Cubist geometry in forms
-
-GENDER-SPECIFIC COLOR (as Lempicka did):
-- FEMALE subjects: Apply signature vermillion red lips, red nails - these are compositional focal points
-- MALE subjects: Render lips in NATURAL flesh tones only (muted browns/pinks matching skin). Lempicka did NOT use red lips on men (see Portrait of Dr. Boucard, Marquis d'Afflito). Male elegance comes from pose and attire, not cosmetics.
-
-This is a portrait of THIS specific person in Lempicka's style.`;
+// Baseline: the prompt the Worker ships (src/prompt.js), not a copy of it.
+// When this experiment first ran, production was v3 in PROMPT_CHANGELOG.md,
+// which let the model remove glasses.
+const PRODUCTION_PROMPT = LEMPICKA_PROMPT;
 
 // Variant A: Simple addition to identity section
 const GLASSES_V1 = `Tamara de Lempicka oil portrait commission, 1929.
@@ -101,7 +89,7 @@ GENDER-SPECIFIC COLOR (as Lempicka did):
 This is a portrait of THIS specific person in Lempicka's style.`;
 
 const PROMPTS = [
-  { name: "CURRENT (may remove glasses)", prompt: CURRENT_PROMPT },
+  { name: "PRODUCTION (src/prompt.js)", prompt: PRODUCTION_PROMPT },
   { name: "V1 - Simple addition", prompt: GLASSES_V1 },
   { name: "V2 - Historical override", prompt: GLASSES_V2 },
   { name: "V3 - Strongest + dedicated section", prompt: GLASSES_V3 },
@@ -186,6 +174,8 @@ async function main() {
 
   const results = {};
 
+  let failures = 0;
+
   for (const { name, prompt } of PROMPTS) {
     try {
       results[name] = await callReplicate(prompt, dataUri, name);
@@ -193,6 +183,7 @@ async function main() {
     } catch (err) {
       console.error(`Error: ${err.message}`);
       results[name] = `ERROR: ${err.message}`;
+      failures++;
     }
   }
 
@@ -211,6 +202,14 @@ async function main() {
   console.log("  2. Is frame shape/style maintained? (critical)");
   console.log("  3. Is Lempicka style still applied? (check skin, lighting, etc.)");
   console.log("  4. Overall identity preservation");
+
+  if (failures > 0) {
+    console.error(`\n${failures} of ${PROMPTS.length} prompts failed.`);
+    process.exitCode = 1;
+  }
 }
 
-main().catch(console.error);
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

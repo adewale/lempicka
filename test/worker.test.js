@@ -6,6 +6,7 @@ import { after, before, beforeEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { Miniflare } from "miniflare";
+import { LEMPICKA_PROMPT, NANO_BANANA_VERSION } from "../src/prompt.js";
 
 const MINUTE = 60 * 1000;
 const PREDICTIONS = "https://api.replicate.com/v1/predictions";
@@ -92,8 +93,8 @@ describe("POST /transform", () => {
     assert.deepEqual(calls.map((c) => c.url), [PREDICTIONS, POLL_URL]);
     assert.ok(calls.every((c) => c.auth === "Bearer test-token"));
     assert.deepEqual(calls[0].body.input.image_input, [image]);
-    assert.match(calls[0].body.version, /^[0-9a-f]{64}$/);
-    assert.match(calls[0].body.input.prompt, /Lempicka/);
+    assert.equal(calls[0].body.version, NANO_BANANA_VERSION);
+    assert.equal(calls[0].body.input.prompt, LEMPICKA_PROMPT);
   });
 
   test("encodes a multipart upload as a data URI, byte for byte", async () => {

@@ -195,12 +195,16 @@ A healthy deployment returns:
 
 ## Prompt notes
 
-The production prompt is in `src/index.js`. Its evolution is documented in:
+The production prompt and model version are in `src/prompt.js`; the Worker and
+the prompt-experiment scripts in `test/` both import them. Its evolution is
+documented in:
 
 - `PROMPT_CHANGELOG.md` — concise production prompt history
 - `Prompt_autotuning.md` — longer notes from prompt experiments
 
-Prompt experiments call the real Replicate API and may incur cost.
+Prompt experiments call the real Replicate API and may incur cost. Each script
+exits non-zero when any request fails, so a run that produced nothing is never
+mistaken for a completed comparison.
 
 ## Security
 
